@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QUIZ GAME</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Base styles for the body */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #E0F2F7; /* Light Blue Background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden; /* Prevent scrolling */
+        }
+
+        /* Kiosk specific styling for vertical layout and game container */
+        .game-container {
+            width: 1080px; /* Fixed width for Kiosk */
+            height: 1920px; /* Fixed height for Kiosk */
+            background: linear-gradient(180deg, #007bff 0%, #0056b3 100%); /* Bangkok Bank Blue Gradient */
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            color: white;
+            text-align: center;
+            padding: 40px; /* Add padding to ensure content fits */
+            box-sizing: border-box; /* Include padding in width/height */
+        }
+
+        /* Common button styles */
+        .game-button {
+            @apply bg-white text-blue-800 font-bold py-6 px-12 rounded-full shadow-lg transition-transform transform hover:scale-105 active:scale-95;
+            min-width: 300px; /* Ensure buttons are large for touch */
+            font-size: 2.5rem; /* Larger font for readability */
+            margin-top: 30px;
+            border: 5px solid #0056b3; /* Darker blue border */
+            cursor: pointer; /* Indicate clickable */
+        }
+
+        /* Question box styles for selection screen */
+        .question-box {
+            @apply bg-white text-blue-800 font-bold flex items-center justify-center rounded-2xl shadow-md transition-transform transform hover:scale-105 active:scale-95;
+            width: 280px; /* Adjusted for 3 columns with spacing */
+            height: 280px; /* Square boxes */
+            font-size: 5rem; /* Large numbers */
+            margin: 15px; /* Slightly reduced margin for 12 boxes */
+            border: 5px solid #0056b3;
+            cursor: pointer; /* Indicate clickable */
+        }
+
+        .question-box.selected {
+            background-color: #A7D9FF; /* Lighter blue for selected boxes */
+            border-color: #003366; /* Darker border for selected */
+            color: #003366;
+            pointer-events: none; /* Disable click on selected boxes */
+        }
+
+        /* Question screen specific styles */
+        .question-text {
+            font-size: 3.5rem;
+            margin-bottom: 50px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            line-height: 1.3; /* Improve readability for long questions */
+        }
+
+        .answer-button {
+            @apply bg-white text-blue-800 font-bold py-8 px-12 rounded-full shadow-lg transition-transform transform hover:scale-105 active:scale-95;
+            width: 80%; /* Wider buttons */
+            max-width: 700px;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            border: 5px solid #0056b3;
+            cursor: pointer; /* Indicate clickable */
+        }
+
+        .answer-button.correct {
+            background-color: #4CAF50; /* Green for correct answer */
+            color: white;
+            border-color: #388E3C;
+        }
+
+        .answer-button.incorrect {
+            background-color: #F44336; /* Red for incorrect answer */
+            color: white;
+            border-color: #D32F2F;
+        }
+
+        .timer-display {
+            font-size: 8rem;
+            font-weight: bold;
+            color: #FFEB3B; /* Yellow for timer */
+            text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.7);
+            margin-bottom: 40px;
+        }
+
+        /* Score summary & Prize screen styles */
+        .summary-text {
+            font-size: 4rem;
+            font-weight: bold;
+            margin-bottom: 50px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .prize-name {
+            font-size: 5rem;
+            font-weight: bold;
+            color: #FFEB3B; /* Yellow for prize name */
+            text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.7);
+            /* Adjusted margins for better spacing */
+            margin-top: 96px; /* mt-24 */
+            margin-bottom: 96px; /* mb-24 */
+        }
+
+        .prize-spin-box {
+            @apply bg-white text-blue-800 font-bold flex flex-col items-center justify-center rounded-3xl shadow-lg transition-transform transform hover:scale-105 active:scale-95;
+            width: 600px;
+            height: 600px;
+            font-size: 3rem;
+            margin-top: 50px; /* Default margin, adjusted by parent flex */
+            border: 10px solid #0056b3;
+            cursor: pointer; /* Indicate clickable */
+        }
+
+        /* New styles for the logo image */
+        #bankLogo {
+            position: absolute;
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 400px; /* Adjust logo width as needed */
+            height: auto;
+            z-index: 10;
+            border-radius: 10px; /* Slightly rounded corners for the logo image */
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        /* Modern bank background for prize screen */
+        .modern-bank-bg {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 50%, #003366 100%); /* Deeper blue gradient */
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Place behind content */
+            opacity: 0.9; /* Slightly transparent to let main gradient show through */
+            border-radius: 20px; /* Match container border-radius */
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Bangkok Bank Logo Image -->
+        <img src=https://www.bangkokbank.com/-/media/feature/identi…&sc_lang=en&hash=C493D3DC5FBF94ED5448BFE881213ABE>
+
+        <!-- Start Screen -->
+        <div id="startScreen" class="flex flex-col items-center justify-center h-full w-full">
+            <h1 class="text-7xl font-bold mb-10 text-white text-shadow-lg">เปิดกล่องความรู้...</h1>
+            <h2 class="text-6xl font-bold mb-20 text-white text-shadow-lg">สู่เส้นทางอาชีพ!</h2>
+            <button id="startGameBtn" class="game-button">เริ่มเกม</button>
+        </div>
+
+        <!-- Question Box Selection Screen -->
+        <div id="selectBoxScreen" class="hidden flex-col items-center justify-center h-full w-full">
+            <h2 class="text-5xl font-bold mb-10 text-white text-shadow-lg">เลือกกล่องปริศนา 3 กล่อง</h2>
+            <div id="questionBoxesContainer" class="grid grid-cols-3 gap-8 mb-10">
+                <!-- Question boxes will be generated here by JS -->
+            </div>
+            <p id="selectedCount" class="text-4xl font-bold text-white">เลือกแล้ว 0/3</p>
+        </div>
+
+        <!-- Question Screen -->
+        <div id="questionScreen" class="hidden flex-col items-center justify-center h-full w-full">
+            <div id="timerDisplay" class="timer-display">00:05</div>
+            <p id="questionText" class="question-text px-10"></p>
+            <button id="answerA" class="answer-button">A</button>
+            <button id="answerB" class="answer-button">B</button>
+            <button id="answerC" class="answer-button">C</button>
+        </div>
+
+        <!-- Question Result Screen -->
+        <div id="questionResultScreen" class="hidden flex-col items-center justify-center h-full w-full">
+            <h2 id="resultText" class="text-7xl font-bold mb-10 text-white text-shadow-lg"></h2>
+            <p id="correctAnswerText" class="text-4xl text-white px-10"></p>
+            <button id="nextQuestionBtn" class="game-button">ต่อไป</button>
+        </div>
+
+        <!-- Score Summary Screen -->
+        <div id="scoreSummaryScreen" class="hidden flex-col items-center justify-center h-full w-full">
+            <h2 class="summary-text">คะแนนรวมของคุณ: <span id="finalScoreDisplay">0</span>/3</h2>
+            <p id="prizeEligibilityText" class="text-4xl text-white mb-10 px-10"></p>
+            <button id="spinPrizeBtn" class="game-button hidden">สุ่มรับรางวัล!</button>
+            <button id="getConsolationPrizeBtn" class="game-button hidden">รับรางวัล</button>
+        </div>
+
+        <!-- Prize Redemption/Display Screen -->
+        <div id="prizeScreen" class="hidden flex-col items-center justify-center h-full w-full">
+            <div class="modern-bank-bg"></div> <!-- Modern bank background graphic -->
+            <h2 class="text-5xl font-bold mb-10 text-white text-shadow-lg">ยินดีด้วย!</h2>
+            <div id="prizeSpinBox" class="prize-spin-box flex-col hidden">
+                <p class="text-4xl text-blue-800">แตะเพื่อเปิดกล่อง</p>
+                <p class="text-3xl text-blue-600">(ลุ้นรางวัล)</p>
+            </div>
+            <p id="awardedPrizeText" class="prize-name"></p>
+            <p id="contactStaffText" class="text-3xl text-white mb-10 px-10">กรุณาติดต่อเจ้าหน้าที่เพื่อรับของรางวัล</p>
+            <button id="playAgainBtn" class="game-button mt-10">เล่นอีกครั้ง</button>
+        </div>
+    </div>
+
+    <script>
+        // Game State Variables
+        let currentScreen = 'start'; // Tracks the currently active screen
+        let score = 0; // Player's score for the current game
+        let selectedBoxes = []; // Stores the indices of selected question boxes
+        let currentQuestionIndex = 0; // Tracks which question is currently being asked
+        let timer; // Timer ID for the countdown
+        let timeLeft = 5; // Time remaining for each question
+        let questionsAnswered = 0; // Number of questions answered in the current game session
+
+        // DOM Elements - Get references to all necessary HTML elements
+        const startScreen = document.getElementById('startScreen');
+        const selectBoxScreen = document.getElementById('selectBoxScreen');
+        const questionBoxesContainer = document.getElementById('questionBoxesContainer');
+        const selectedCountDisplay = document.getElementById('selectedCount');
+        const questionScreen = document.getElementById('questionScreen');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const questionText = document.getElementById('questionText');
+        const answerA = document.getElementById('answerA');
+        const answerB = document.getElementById('answerB');
+        const answerC = document = document.getElementById('answerC');
+        const questionResultScreen = document.getElementById('questionResultScreen');
+        const resultText = document.getElementById('resultText');
+        const correctAnswerText = document.getElementById('correctAnswerText');
+        const nextQuestionBtn = document.getElementById('nextQuestionBtn');
+        const scoreSummaryScreen = document.getElementById('scoreSummaryScreen');
+        const finalScoreDisplay = document.getElementById('finalScoreDisplay');
+        const prizeEligibilityText = document.getElementById('prizeEligibilityText');
+        const spinPrizeBtn = document.getElementById('spinPrizeBtn');
+        const getConsolationPrizeBtn = document.getElementById('getConsolationPrizeBtn');
+        const prizeScreen = document.getElementById('prizeScreen');
+        const prizeSpinBox = document.getElementById('prizeSpinBox');
+        const awardedPrizeText = document.getElementById('awardedPrizeText');
+        const contactStaffText = document.getElementById('contactStaffText');
+        const playAgainBtn = document.getElementById('playAgainBtn');
+
+        // Game Data: Questions
+        // Each question has a type, question, options, and correct answer index (0 for A, 1 for B, 2 for C)
+        const allQuestions = [
+            // Bangkok Bank Questions (เพิ่มเป็น 8 ข้อ)
+            { type: 'bbl', question: 'ธนาคารกรุงเทพมีนโยบายสำคัญด้านใด?', options: ['การพัฒนาอย่างยั่งยืน', 'การขยายสาขาในต่างประเทศ', 'การลงทุนในอสังหาริมทรัพย์'], correct: 0 },
+            { type: 'bbl', question: 'สโลแกนของธนาคารกรุงเทพคืออะไร?', options: ['เพื่อนคู่คิด มิตรคู่บ้าน', 'เคียงข้างคุณทุกเส้นทาง', 'บริการด้วยใจ ใส่ใจทุกรายละเอียด'], correct: 0 },
+            { type: 'bbl', question: 'ธนาคารกรุงเทพก่อตั้งขึ้นในปีใด?', options: ['พ.ศ. 2487', 'พ.ศ. 2500', 'พ.ศ. 2510'], correct: 0 },
+            { type: 'bbl', question: 'บริการใดของธนาคารกรุงเทพที่ช่วยให้ธุรกิจเติบโต?', options: ['สินเชื่อธุรกิจ SME', 'บัตรเครดิตส่วนบุคคล', 'ประกันชีวิต'], correct: 0 },
+            { type: 'bbl', question: 'ธนาคารกรุงเทพมีวิสัยทัศน์อย่างไร?', options: ['เป็นธนาคารชั้นนำในภูมิภาค', 'เป็นธนาคารที่ใหญ่ที่สุดในโลก', 'เป็นธนาคารที่เน้นการลงทุนเท่านั้น'], correct: 0 },
+            { type: 'bbl', question: 'แอปพลิเคชันโมบายแบงก์กิ้งของธนาคารกรุงเทพชื่ออะไร?', options: ['Bualuang mBanking', 'K-Plus', 'SCB Easy'], correct: 0 },
+            { type: 'bbl', question: 'ธนาคารกรุงเทพมีเครือข่ายสาขาครอบคลุมกี่ประเทศ?', options: ['มากกว่า 10 ประเทศ', 'เฉพาะในประเทศไทย', 'ในภูมิภาคเอเชียตะวันออกเฉียงใต้เท่านั้น'], correct: 0 },
+            { type: 'bbl', question: 'ข้อใดคือคุณค่าหลักที่ธนาคารกรุงเทพยึดมั่น?', options: ['ความซื่อสัตย์และคุณธรรม', 'ความเร็วในการให้บริการเท่านั้น', 'การทำกำไรสูงสุด'], correct: 0 },
+
+            // Job Position Questions (เพิ่มเป็น 8 ข้อ)
+            { type: 'job', question: 'ทักษะใดสำคัญที่สุดสำหรับตำแหน่ง Marketing Officer?', options: ['การวิเคราะห์ข้อมูล', 'การเขียนโค้ด', 'การซ่อมบำรุงเครื่องจักร'], correct: 0 },
+            { type: 'job', question: 'คุณสมบัติใดที่จำเป็นสำหรับตำแหน่ง Financial Analyst?', options: ['ความสามารถในการใช้โปรแกรมกราฟิก', 'ความเข้าใจในตลาดทุน', 'ความชำนาญในการทำอาหาร'], correct: 1 },
+            { type: 'job', question: 'บทบาทหลักของ IT Support คืออะไร?', options: ['ออกแบบเว็บไซต์', 'แก้ไขปัญหาทางเทคนิค', 'วางแผนการตลาด'], correct: 1 },
+            { type: 'job', question: 'ตำแหน่ง Customer Service Officer ต้องมีทักษะใดเป็นพิเศษ?', options: ['การเจรจาต่อรอง', 'การสื่อสารและการแก้ไขปัญหา', 'การออกแบบกราฟิก'], correct: 1 },
+            { type: 'job', question: 'ผู้จัดการสาขาควรมีคุณสมบัติใด?', options: ['ความสามารถในการร้องเพลง', 'ภาวะผู้นำและการบริหารทีม', 'ความเชี่ยวชาญด้านการเกษตร'], correct: 1 },
+            { type: 'job', question: 'ข้อใดคือหน้าที่หลักของ Data Scientist?', options: ['สร้างสรรค์โฆษณา', 'วิเคราะห์ข้อมูลเพื่อหา Insight', 'ดูแลระบบเครือข่าย'], correct: 1 },
+            { type: 'job', question: 'การเป็น Relationship Manager ที่ดีต้องมีทักษะใด?', options: ['การทำบัญชี', 'การสร้างความสัมพันธ์กับลูกค้า', 'การเขียนโปรแกรม'], correct: 1 },
+            { type: 'job', question: 'ตำแหน่ง Compliance Officer มีหน้าที่หลักเกี่ยวกับอะไร?', options: ['การปฏิบัติตามกฎระเบียบ', 'การพัฒนาผลิตภัณฑ์ใหม่', 'การจัดการทรัพยากรบุคคล'], correct: 0 },
+
+            // General Professional Skills Questions (เพิ่มเป็น 8 ข้อ)
+            { type: 'skill', question: 'ข้อใดคือการทำงานเป็นทีมที่ดี?', options: ['ทำทุกอย่างด้วยตัวเอง', 'แบ่งปันความรู้และช่วยเหลือกัน', 'แข่งขันกับเพื่อนร่วมงาน'], correct: 1 },
+            { type: 'skill', question: 'คุณจะทำอย่างไรเมื่อเจออุปสรรคในการทำงาน?', options: ['ยอมแพ้ทันที', 'ขอความช่วยเหลือและหาวิธีแก้ไข', 'โทษผู้อื่น'], correct: 1 },
+            { type: 'skill', question: 'การสื่อสารที่มีประสิทธิภาพควรมีลักษณะอย่างไร?', options: ['พูดเสียงดัง', 'ชัดเจน กระชับ และเข้าใจง่าย', 'ใช้คำศัพท์เฉพาะทาง'], correct: 1 },
+            { type: 'skill', question: 'ทักษะการแก้ปัญหา (Problem Solving) มีความสำคัญอย่างไร?', options: ['ทำให้งานล่าช้า', 'ช่วยให้หาวิธีเอาชนะอุปสรรค', 'ไม่จำเป็นในการทำงาน'], correct: 1 },
+            { type: 'skill', question: 'การปรับตัวเข้ากับการเปลี่ยนแปลงในที่ทำงานเป็นสิ่งสำคัญหรือไม่?', options: ['ไม่สำคัญ', 'สำคัญมาก', 'ขึ้นอยู่กับสถานการณ์'], correct: 1 },
+            { type: 'skill', question: 'ข้อใดคือลักษณะของ Growth Mindset?', options: ['เชื่อว่าความสามารถถูกกำหนดมาแล้ว', 'เชื่อว่าความสามารถพัฒนาได้', 'หลีกเลี่ยงความท้าทาย'], correct: 1 },
+            { type: 'skill', question: 'การบริหารเวลาที่ดีจะส่งผลอย่างไร?', options: ['ทำงานเสร็จช้าลง', 'เพิ่มประสิทธิภาพและลดความเครียด', 'ทำให้มีเวลาว่างน้อยลง'], correct: 1 },
+            { type: 'skill', question: 'ทักษะการคิดเชิงวิพากษ์ (Critical Thinking) คืออะไร?', options: ['การยอมรับทุกข้อมูลโดยไม่มีข้อสงสัย', 'การวิเคราะห์ข้อมูลอย่างมีเหตุผลและรอบด้าน', 'การตัดสินใจอย่างรวดเร็วโดยไม่คิดมาก'], correct: 1 }
+        ];
+
+        let gameQuestions = []; // Questions selected for the current game session
+
+        // Prize Data and Daily Quotas
+        // 'current' will be updated from localStorage, 'weight' is for random selection probability
+        const prizes = [
+            { name: 'สมุดโน้ต', quota: 200, current: 0, weight: 200 },
+            { name: 'ที่รัดสายชาร์จ', quota: 50, current: 0, weight: 50 },
+            { name: 'กระเป๋าผ้าสปันบอนด์', quota: 50, current: 0, weight: 50 },
+            { name: 'กระเป๋าผ้ากระสอบพาสเทล', quota: 20, current: 0, weight: 20 },
+            { name: 'กระบอกน้ำสแตนเลส', quota: 5, current: 0, weight: 5 },
+            { name: 'กล่องดินสอไม้', quota: 3, current: 0, weight: 3 },
+            { name: 'กระบอกน้ำพลาสติก', quota: 3, current: 0, weight: 3 },
+            { name: 'Giftset stationary', quota: 2, current: 0, weight: 2 },
+            { name: 'Giftset กล่องข้าว', quota: 2, current: 0, weight: 2 }
+        ];
+
+        // --- Prize System Functions ---
+        /**
+         * Initializes prize counts from localStorage or resets them daily.
+         * Checks if it's a new day; if so, resets all prize quotas.
+         * Otherwise, loads saved counts.
+         */
+        function initializePrizes() {
+            const today = new Date().toDateString(); // Get today's date string (e.g., "Mon Jul 01 2025")
+            const lastResetDate = localStorage.getItem('lastResetDate'); // Get the last reset date from localStorage
+
+            if (lastResetDate !== today) {
+                // If it's a new day, reset all prize quotas to their initial values
+                prizes.forEach(prize => {
+                    prize.current = prize.quota;
+                });
+                localStorage.setItem('lastResetDate', today); // Save the new reset date
+                // Save the current state of prize counts to localStorage
+                localStorage.setItem('prizeCounts', JSON.stringify(prizes.map(p => ({ name: p.name, current: p.current }))));
+            } else {
+                // If it's the same day, load current counts from localStorage
+                const savedCounts = JSON.parse(localStorage.getItem('prizeCounts') || '[]');
+                if (savedCounts.length > 0) {
+                    prizes.forEach(prize => {
+                        const saved = savedCounts.find(s => s.name === prize.name);
+                        if (saved) {
+                            prize.current = saved.current; // Update current count from saved data
+                        } else {
+                            // If a new prize was added to the list or not found in saved data,
+                            // initialize it to its full quota.
+                            prize.current = prize.quota;
+                        }
+                    });
+                } else {
+                     // If no saved counts exist (e.g., first time running the game),
+                     // initialize all prizes to their full quota.
+                    prizes.forEach(prize => {
+                        prize.current = prize.quota;
+                    });
+                }
+            }
+            updatePrizeWeights(); // Always update weights after initializing/loading counts
+        }
+
+        /**
+         * Updates the 'weight' property of each prize based on its current availability.
+         * Prizes with 0 current count will have a weight of 0, making them unselectable.
+         */
+        function updatePrizeWeights() {
+            prizes.forEach(prize => {
+                // If the prize is still available (current > 0), its weight is its original quota.
+                // Otherwise, its weight is 0, meaning it won't be selected.
+                prize.weight = prize.current > 0 ? prize.quota : 0;
+            });
+        }
+
+        /**
+         * Selects a random prize based on their weights.
+         * @returns {Object|null} The selected prize object, or null if no prizes are left.
+         */
+        function getRandomPrize() {
+            // Filter for prizes that still have stock
+            let availablePrizes = prizes.filter(p => p.current > 0);
+            if (availablePrizes.length === 0) {
+                return null; // No prizes left to give
+            }
+
+            // Calculate the total weight of all available prizes
+            let totalWeight = availablePrizes.reduce((sum, prize) => sum + prize.weight, 0);
+
+            // Edge case: if all available prizes somehow have 0 weight (e.g., quota was 0 initially for all)
+            // just pick one randomly from available to prevent an infinite loop or no selection.
+            if (totalWeight === 0) {
+                return availablePrizes[Math.floor(Math.random() * availablePrizes.length)];
+            }
+
+            // Generate a random number between 0 and totalWeight
+            let randomNum = Math.random() * totalWeight;
+
+            // Iterate through available prizes to find which one corresponds to the random number
+            for (let i = 0; i < availablePrizes.length; i++) {
+                randomNum -= availablePrizes[i].weight; // Subtract the current prize's weight
+                if (randomNum < 0) {
+                    // If randomNum becomes negative, this prize is the one selected
+                    return availablePrizes[i];
+                }
+            }
+            // Fallback in case of floating point inaccuracies or if loop finishes without selection
+            return availablePrizes[availablePrizes.length - 1];
+        }
+
+        /**
+         * Decrements the count of a given prize and updates localStorage.
+         * @param {string} prizeName - The name of the prize to decrement.
+         */
+        function decrementPrizeCount(prizeName) {
+            const prize = prizes.find(p => p.name === prizeName);
+            if (prize && prize.current > 0) {
+                prize.current--; // Decrease the current count
+                // Save the updated prize counts to localStorage
+                localStorage.setItem('prizeCounts', JSON.stringify(prizes.map(p => ({ name: p.name, current: p.current }))));
+                updatePrizeWeights(); // Recalculate weights as stock has changed
+            }
+        }
+
+        // --- Screen Management Functions ---
+        /**
+         * Shows the specified screen and hides all other game screens.
+         * @param {string} screenId - The ID of the screen to show (e.g., 'startScreen').
+         */
+        function showScreen(screenId) {
+            const screens = [startScreen, selectBoxScreen, questionScreen, questionResultScreen, scoreSummaryScreen, prizeScreen];
+            screens.forEach(screen => {
+                if (screen.id === screenId) {
+                    screen.classList.remove('hidden'); // Show the target screen
+                } else {
+                    screen.classList.add('hidden'); // Hide other screens
+                }
+            });
+            currentScreen = screenId; // Update the current screen state
+        }
+
+        // --- Game Logic Functions ---
+        /**
+         * Resets all game state variables to their initial values for a new game.
+         */
+        function resetGame() {
+            score = 0;
+            selectedBoxes = [];
+            currentQuestionIndex = 0;
+            questionsAnswered = 0;
+            clearInterval(timer); // Stop any running timer
+            timeLeft = 5;
+            gameQuestions = []; // Clear questions from previous session
+            initializePrizes(); // Re-initialize prize counts (important for daily reset)
+            renderQuestionBoxes(); // Re-render boxes to clear selected state and enable clicks
+            selectedCountDisplay.textContent = 'เลือกแล้ว 0/3'; // Reset selected count display
+            // Ensure prize spin box and awarded text are hidden for a new game
+            prizeSpinBox.classList.add('hidden');
+            awardedPrizeText.textContent = '';
+            contactStaffText.classList.add('hidden'); // Hide contact staff text initially
+            playAgainBtn.classList.add('hidden'); // Hide play again button initially
+            spinPrizeBtn.classList.add('hidden'); // Hide spin prize button
+            getConsolationPrizeBtn.classList.add('hidden'); // Hide consolation prize button
+        }
+
+        /**
+         * Shuffles an array randomly using Fisher-Yates algorithm.
+         * @param {Array} array - The array to shuffle.
+         * @returns {Array} The shuffled array.
+         */
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+            }
+            return array;
+        }
+
+        /**
+         * Generates 3 unique questions for the current game session,
+         * ensuring one from each category (bbl, job, skill) if enough questions exist.
+         */
+        function generateGameQuestions() {
+            // Filter questions by type and shuffle them
+            const bblQuestions = shuffleArray(allQuestions.filter(q => q.type === 'bbl'));
+            const jobQuestions = shuffleArray(allQuestions.filter(q => q.type === 'job'));
+            const skillQuestions = shuffleArray(allQuestions.filter(q => q.type === 'skill'));
+
+            const selectedGameQuestions = [];
+
+            // Try to include one question from each category
+            if (bblQuestions.length > 0) selectedGameQuestions.push(bblQuestions.pop());
+            if (jobQuestions.length > 0) selectedGameQuestions.push(jobQuestions.pop());
+            if (skillQuestions.length > 0) selectedGameQuestions.push(skillQuestions.pop());
+
+            // Collect remaining questions from all types that haven't been picked yet
+            const remainingQuestions = shuffleArray(
+                allQuestions.filter(q => !selectedGameQuestions.includes(q))
+            );
+
+            // Fill the remaining slots (up to 3 questions total)
+            while (selectedGameQuestions.length < 3 && remainingQuestions.length > 0) {
+                selectedGameQuestions.push(remainingQuestions.pop());
+            }
+
+            // Ensure we have exactly 3 unique questions and shuffle them again for game order
+            gameQuestions = shuffleArray(selectedGameQuestions.slice(0, 3));
+        }
+
+
+        /**
+         * Renders the 12 question boxes on the selection screen.
+         */
+        function renderQuestionBoxes() {
+            questionBoxesContainer.innerHTML = ''; // Clear previous boxes
+            for (let i = 1; i <= 12; i++) { // Changed to 12 boxes
+                const box = document.createElement('div');
+                box.classList.add('question-box');
+                box.textContent = i;
+                box.dataset.boxIndex = i; // Store the box index
+                if (selectedBoxes.includes(i)) {
+                    box.classList.add('selected');
+                    box.style.pointerEvents = 'none'; // Disable click on already selected boxes
+                } else {
+                    box.addEventListener('click', handleBoxSelection); // Add click listener for unselected boxes
+                }
+                questionBoxesContainer.appendChild(box);
+            }
+        }
+
+        /**
+         * Handles the selection of a question box.
+         * @param {Event} event - The click event object.
+         */
+        function handleBoxSelection(event) {
+            const boxIndex = parseInt(event.target.dataset.boxIndex);
+            // Check if less than 3 boxes are selected and this box hasn't been selected yet
+            if (selectedBoxes.length < 3 && !selectedBoxes.includes(boxIndex)) {
+                selectedBoxes.push(boxIndex); // Add to selected list
+                event.target.classList.add('selected'); // Visually mark as selected
+                event.target.style.pointerEvents = 'none'; // Disable further clicks on this box
+                selectedCountDisplay.textContent = `เลือกแล้ว ${selectedBoxes.length}/3`;
+
+                if (selectedBoxes.length === 3) {
+                    // If 3 boxes are selected, proceed to show the first question after a short delay
+                    setTimeout(() => {
+                        showQuestion();
+                    }, 500);
+                }
+            }
+        }
+
+        /**
+         * Starts the 5-second countdown timer for a question.
+         */
+        function startTimer() {
+            timeLeft = 5; // Reset time for the new question
+            timerDisplay.textContent = `00:0${timeLeft}`; // Update display immediately
+            clearInterval(timer); // Clear any previously running timer
+            timer = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = `00:0${timeLeft}`;
+                if (timeLeft <= 0) {
+                    clearInterval(timer); // Stop timer when time is up
+                    handleAnswer(null); // Call handleAnswer with null to indicate time out
+                }
+            }, 1000); // Update every second
+        }
+
+        /**
+         * Displays the current question and its answer options.
+         */
+        function showQuestion() {
+            // Check if all 3 questions have been answered
+            if (questionsAnswered >= gameQuestions.length) {
+                showScoreSummary(); // If so, go to score summary
+                return;
+            }
+
+            showScreen('questionScreen'); // Show the question screen
+            const q = gameQuestions[questionsAnswered]; // Get the current question object
+            questionText.textContent = q.question; // Display the question text
+            answerA.textContent = `A. ${q.options[0]}`; // Display option A
+            answerB.textContent = `B. ${q.options[1]}`; // Display option B
+            answerC.textContent = `C. ${q.options[2]}`; // Display option C
+
+            // Reset button styles from previous question (e.g., correct/incorrect highlights)
+            [answerA, answerB, answerC].forEach(btn => {
+                btn.classList.remove('correct', 'incorrect');
+                btn.style.pointerEvents = 'auto'; // Re-enable buttons for interaction
+            });
+
+            startTimer(); // Start the countdown timer for this question
+        }
+
+        /**
+         * Handles the user's answer selection or when time runs out.
+         * @param {number|null} selectedAnswerIndex - The index of the selected answer (0, 1, 2) or null if time's up.
+         */
+        function handleAnswer(selectedAnswerIndex) {
+            clearInterval(timer); // Stop the timer immediately after an answer or timeout
+            const q = gameQuestions[questionsAnswered]; // Get the current question
+
+            // Determine if the answer was correct
+            const isCorrect = selectedAnswerIndex === q.correct;
+
+            // Disable all answer buttons to prevent further clicks
+            [answerA, answerB, answerC].forEach(btn => {
+                btn.style.pointerEvents = 'none';
+            });
+
+            // Highlight the selected answer (if any) and the correct answer
+            if (selectedAnswerIndex !== null) {
+                if (isCorrect) {
+                    // If correct, add 'correct' class to the chosen button
+                    if (selectedAnswerIndex === 0) answerA.classList.add('correct');
+                    else if (selectedAnswerIndex === 1) answerB.classList.add('correct');
+                    else if (selectedAnswerIndex === 2) answerC.classList.add('correct');
+                    score++; // Increment score
+                    resultText.textContent = 'ถูกต้อง!'; // Display "Correct!"
+                    correctAnswerText.textContent = ''; // No need to show correct answer text
+                } else {
+                    // If incorrect, add 'incorrect' class to chosen button
+                    if (selectedAnswerIndex === 0) answerA.classList.add('incorrect');
+                    else if (selectedAnswerIndex === 1) answerB.classList.add('incorrect');
+                    else if (selectedAnswerIndex === 2) answerC.classList.add('incorrect');
+
+                    // Always highlight the correct answer in green
+                    if (q.correct === 0) answerA.classList.add('correct');
+                    else if (q.correct === 1) answerB.classList.add('correct');
+                    else if (q.correct === 2) answerC.classList.add('correct');
+
+                    resultText.textContent = 'ผิดพลาด!'; // Display "Incorrect!"
+                    correctAnswerText.textContent = `คำตอบที่ถูกต้องคือ: ${q.options[q.correct]}`; // Show correct answer
+                }
+            } else {
+                // If time's up (selectedAnswerIndex is null)
+                resultText.textContent = 'หมดเวลา!'; // Display "Time's up!"
+                correctAnswerText.textContent = `คำตอบที่ถูกต้องคือ: ${q.options[q.correct]}`; // Show correct answer
+
+                // Highlight the correct answer in green even if time's up
+                if (q.correct === 0) answerA.classList.add('correct');
+                else if (q.correct === 1) answerB.classList.add('correct');
+                else if (q.correct === 2) answerC.classList.add('correct');
+            }
+
+            questionsAnswered++; // Increment the count of answered questions
+            showScreen('questionResultScreen'); // Move to the result screen
+        }
+
+        /**
+         * Displays the final score and determines prize eligibility.
+         */
+        function showScoreSummary() {
+            showScreen('scoreSummaryScreen'); // Show the score summary screen
+            finalScoreDisplay.textContent = score; // Display the final score
+
+            if (score >= 2) {
+                prizeEligibilityText.textContent = 'ยอดเยี่ยม! คุณมีสิทธิ์ลุ้นรับรางวัลพิเศษ!';
+                spinPrizeBtn.classList.remove('hidden'); // Show the "Spin Prize" button
+                getConsolationPrizeBtn.classList.add('hidden'); // Hide consolation prize button
+            } else {
+                prizeEligibilityText.textContent = 'ไม่เป็นไรนะ! คุณได้รับ "สมุดโน้ตรักษ์โลก" เป็นรางวัลปลอบใจ!';
+                spinPrizeBtn.classList.add('hidden'); // Hide "Spin Prize" button
+                getConsolationPrizeBtn.classList.remove('hidden'); // Show consolation prize button
+            }
+        }
+
+        /**
+         * Handles the prize spinning animation and awards a random prize.
+         */
+        function handlePrizeSpin() {
+            showScreen('prizeScreen'); // Show the prize screen
+            prizeSpinBox.classList.remove('hidden'); // Show the prize spin box
+            awardedPrizeText.textContent = ''; // Clear any previously awarded prize text
+            prizeSpinBox.style.pointerEvents = 'auto'; // Enable click on the spin box
+
+            prizeSpinBox.onclick = () => {
+                prizeSpinBox.style.pointerEvents = 'none'; // Disable further clicks after starting spin
+                prizeSpinBox.innerHTML = '<p class="text-4xl text-blue-800">กำลังสุ่ม...</p>'; // Indicate spinning
+
+                let spinInterval = setInterval(() => {
+                    // Simulate spinning by rapidly changing the text in the spin box
+                    const tempPrize = getRandomPrize(); // Get a temporary random prize for display during spin
+                    prizeSpinBox.innerHTML = `<p class="text-4xl text-blue-800">${tempPrize ? tempPrize.name : 'ไม่มีรางวัล'}</p>`;
+                }, 100); // Change text every 100ms
+
+                setTimeout(() => {
+                    clearInterval(spinInterval); // Stop the spinning animation
+                    const awardedPrize = getRandomPrize(); // Get the actual prize to be awarded
+                    if (awardedPrize) {
+                        awardedPrizeText.textContent = awardedPrize.name; // Display the actual awarded prize name
+                        decrementPrizeCount(awardedPrize.name); // Decrement the count for the awarded prize
+                    } else {
+                        awardedPrizeText.textContent = 'รางวัลหมดแล้ว!'; // Message if no prizes are left
+                    }
+                    prizeSpinBox.classList.add('hidden'); // Hide the spin box after awarding
+                    contactStaffText.classList.remove('hidden'); // Show contact staff instruction
+                    playAgainBtn.classList.remove('hidden'); // Show play again button
+                }, 2000); // Spin for 2 seconds before revealing the final prize
+            };
+        }
+
+        /**
+         * Displays the consolation prize (Notebook).
+         */
+        function showConsolationPrize() {
+            showScreen('prizeScreen'); // Show the prize screen
+            prizeSpinBox.classList.add('hidden'); // Hide the spin box
+            awardedPrizeText.textContent = 'สมุดโน้ตรักษ์โลก'; // Directly display the consolation prize
+            contactStaffText.classList.remove('hidden'); // Show contact staff instruction
+            playAgainBtn.classList.remove('hidden'); // Show play again button
+            // No need to decrement prize count for consolation prize as it's always available
+        }
+
+        // --- Event Listeners ---
+        // When the DOM is fully loaded, initialize prize counts and show the start screen
+        document.addEventListener('DOMContentLoaded', () => {
+            initializePrizes();
+            showScreen('startScreen');
+        });
+
+        // Event listener for the "Start Game" button
+        startGameBtn.addEventListener('click', () => {
+            resetGame(); // Reset game state for a new session
+            generateGameQuestions(); // Generate the 3 questions for this game
+            showScreen('selectBoxScreen'); // Move to the box selection screen
+            renderQuestionBoxes(); // Render the 12 question boxes
+        });
+
+        // Event listeners for answer buttons (A, B, C)
+        answerA.addEventListener('click', () => handleAnswer(0));
+        answerB.addEventListener('click', () => handleAnswer(1));
+        answerC.addEventListener('click', () => handleAnswer(2));
+
+        // Event listener for the "Next Question" button
+        nextQuestionBtn.addEventListener('click', () => {
+            showQuestion(); // Proceed to the next question or summary screen
+        });
+
+        // Event listener for the "Spin Prize" button
+        spinPrizeBtn.addEventListener('click', handlePrizeSpin);
+
+        // Event listener for the "Get Consolation Prize" button
+        getConsolationPrizeBtn.addEventListener('click', showConsolationPrize);
+
+        // Event listener for the "Play Again" button
+        playAgainBtn.addEventListener('click', () => {
+            resetGame(); // Reset game state
+            showScreen('startScreen'); // Go back to the start screen
+        });
+
+    </script>
+</body>
+</html>
