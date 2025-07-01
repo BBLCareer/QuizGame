@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QUIZ GAME</title>
+    <title>เปิดกล่องความรู้...สู่เส้นทางอาชีพ!</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -14,15 +14,23 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            min-height: 100vh; /* Ensures body takes full viewport height */
+            width: 100vw; /* Ensures body takes full viewport width */
             margin: 0;
             overflow: hidden; /* Prevent scrolling */
         }
 
         /* Kiosk specific styling for vertical layout and game container */
         .game-container {
-            width: 1080px; /* Fixed width for Kiosk */
-            height: 1920px; /* Fixed height for Kiosk */
+            /* Responsive adjustments */
+            width: 100%; /* Take full width of parent */
+            height: 100%; /* Take full height of parent */
+            max-width: 1080px; /* Maximum width for desktop */
+            max-height: 1920px; /* Maximum height for desktop */
+            aspect-ratio: 1080 / 1920; /* Maintain vertical aspect ratio */
+            margin: auto; /* Center it horizontally and vertically */
+
+            /* Existing styles */
             background: linear-gradient(180deg, #007bff 0%, #0056b3 100%); /* Bangkok Bank Blue Gradient */
             border-radius: 20px;
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
@@ -135,19 +143,6 @@
             cursor: pointer; /* Indicate clickable */
         }
 
-        /* New styles for the logo image */
-        #bankLogo {
-            position: absolute;
-            top: 40px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 400px; /* Adjust logo width as needed */
-            height: auto;
-            z-index: 10;
-            border-radius: 10px; /* Slightly rounded corners for the logo image */
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-
         /* Modern bank background for prize screen */
         .modern-bank-bg {
             background: linear-gradient(135deg, #007bff 0%, #0056b3 50%, #003366 100%); /* Deeper blue gradient */
@@ -164,8 +159,7 @@
 </head>
 <body>
     <div class="game-container">
-        <!-- Bangkok Bank Logo Image -->
-        <img src=https://www.bangkokbank.com/-/media/feature/identi…&sc_lang=en&hash=C493D3DC5FBF94ED5448BFE881213ABE>
+        <!-- Removed Bangkok Bank Logo Image as requested -->
 
         <!-- Start Screen -->
         <div id="startScreen" class="flex flex-col items-center justify-center h-full w-full">
@@ -241,7 +235,7 @@
         const questionText = document.getElementById('questionText');
         const answerA = document.getElementById('answerA');
         const answerB = document.getElementById('answerB');
-        const answerC = document = document.getElementById('answerC');
+        const answerC = document.getElementById('answerC'); // Corrected typo here
         const questionResultScreen = document.getElementById('questionResultScreen');
         const resultText = document.getElementById('resultText');
         const correctAnswerText = document.getElementById('correctAnswerText');
@@ -660,85 +654,4 @@
          */
         function handlePrizeSpin() {
             showScreen('prizeScreen'); // Show the prize screen
-            prizeSpinBox.classList.remove('hidden'); // Show the prize spin box
-            awardedPrizeText.textContent = ''; // Clear any previously awarded prize text
-            prizeSpinBox.style.pointerEvents = 'auto'; // Enable click on the spin box
-
-            prizeSpinBox.onclick = () => {
-                prizeSpinBox.style.pointerEvents = 'none'; // Disable further clicks after starting spin
-                prizeSpinBox.innerHTML = '<p class="text-4xl text-blue-800">กำลังสุ่ม...</p>'; // Indicate spinning
-
-                let spinInterval = setInterval(() => {
-                    // Simulate spinning by rapidly changing the text in the spin box
-                    const tempPrize = getRandomPrize(); // Get a temporary random prize for display during spin
-                    prizeSpinBox.innerHTML = `<p class="text-4xl text-blue-800">${tempPrize ? tempPrize.name : 'ไม่มีรางวัล'}</p>`;
-                }, 100); // Change text every 100ms
-
-                setTimeout(() => {
-                    clearInterval(spinInterval); // Stop the spinning animation
-                    const awardedPrize = getRandomPrize(); // Get the actual prize to be awarded
-                    if (awardedPrize) {
-                        awardedPrizeText.textContent = awardedPrize.name; // Display the actual awarded prize name
-                        decrementPrizeCount(awardedPrize.name); // Decrement the count for the awarded prize
-                    } else {
-                        awardedPrizeText.textContent = 'รางวัลหมดแล้ว!'; // Message if no prizes are left
-                    }
-                    prizeSpinBox.classList.add('hidden'); // Hide the spin box after awarding
-                    contactStaffText.classList.remove('hidden'); // Show contact staff instruction
-                    playAgainBtn.classList.remove('hidden'); // Show play again button
-                }, 2000); // Spin for 2 seconds before revealing the final prize
-            };
-        }
-
-        /**
-         * Displays the consolation prize (Notebook).
-         */
-        function showConsolationPrize() {
-            showScreen('prizeScreen'); // Show the prize screen
-            prizeSpinBox.classList.add('hidden'); // Hide the spin box
-            awardedPrizeText.textContent = 'สมุดโน้ตรักษ์โลก'; // Directly display the consolation prize
-            contactStaffText.classList.remove('hidden'); // Show contact staff instruction
-            playAgainBtn.classList.remove('hidden'); // Show play again button
-            // No need to decrement prize count for consolation prize as it's always available
-        }
-
-        // --- Event Listeners ---
-        // When the DOM is fully loaded, initialize prize counts and show the start screen
-        document.addEventListener('DOMContentLoaded', () => {
-            initializePrizes();
-            showScreen('startScreen');
-        });
-
-        // Event listener for the "Start Game" button
-        startGameBtn.addEventListener('click', () => {
-            resetGame(); // Reset game state for a new session
-            generateGameQuestions(); // Generate the 3 questions for this game
-            showScreen('selectBoxScreen'); // Move to the box selection screen
-            renderQuestionBoxes(); // Render the 12 question boxes
-        });
-
-        // Event listeners for answer buttons (A, B, C)
-        answerA.addEventListener('click', () => handleAnswer(0));
-        answerB.addEventListener('click', () => handleAnswer(1));
-        answerC.addEventListener('click', () => handleAnswer(2));
-
-        // Event listener for the "Next Question" button
-        nextQuestionBtn.addEventListener('click', () => {
-            showQuestion(); // Proceed to the next question or summary screen
-        });
-
-        // Event listener for the "Spin Prize" button
-        spinPrizeBtn.addEventListener('click', handlePrizeSpin);
-
-        // Event listener for the "Get Consolation Prize" button
-        getConsolationPrizeBtn.addEventListener('click', showConsolationPrize);
-
-        // Event listener for the "Play Again" button
-        playAgainBtn.addEventListener('click', () => {
-            resetGame(); // Reset game state
-            showScreen('startScreen'); // Go back to the start screen
-        });
-
-    </script>
-</body>
-</html>
+            prizeSpinBox.classList.remove('hidden'); // Show the prize spin 
